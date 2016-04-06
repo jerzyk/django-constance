@@ -1,3 +1,4 @@
+import django
 from django.db.models import signals
 
 
@@ -19,5 +20,7 @@ def create_perm(app, created_models, verbosity, db, **kwargs):
             content_type=content_type,
             codename='change_config')
 
-
-signals.post_syncdb.connect(create_perm, dispatch_uid="constance.create_perm")
+if django.VERSION >= (1, 7):
+    signals.post_migrate.connect(create_perm, dispatch_uid="constance.create_perm")
+else:
+    signals.post_syncdb.connect(create_perm, dispatch_uid="constance.create_perm")
