@@ -1,6 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_save
-from django.core.cache import get_cache
 
 try:
     from django.core.cache.backends.locmem import LocMemCache
@@ -25,7 +24,13 @@ class DatabaseBackend(Backend):
                 "correctly. Make sure it's in your INSTALLED_APPS setting.")
 
         if settings.DATABASE_CACHE_BACKEND:
-            self._cache = get_cache(settings.DATABASE_CACHE_BACKEND)
+            try:
+                from django.core.cache import get_cache
+                self._cache = get_cache(settings.DATABASE_CACHE_BACKEND)
+            except ImportError:
+                from django.core.cache import caches
+                self._cache = caches[settings.DATABASE_CACHE_BACKEND]
+
             if isinstance(self._cache, LocMemCache):
                 raise ImproperlyConfigured(
                     "The CONSTANCE_DATABASE_CACHE_BACKEND setting refers to a "
